@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OMIN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000000;
+            --dark: #0a0a0a;
+            --border: #1a1a1a;
+            --gray: #64748b;
+            --white: #f1f5f9;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+        }
+
+        body {
+            font-family: 'IBM Plex Mono', 'SF Mono', 'Monaco', monospace;
+            background: var(--black);
+            color: var(--white);
+            font-size: 13px;
+            line-height: 1.4;
+            overflow: hidden;
+        }
+
+        .header {
+            height: 48px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        .system-status {
+            font-size: 11px;
+            color: var(--green);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 50%;
+            animation: pulse 2s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .main {
+            height: calc(100vh - 48px);
+            display: grid;
+            grid-template-columns: 320px 1fr 380px;
+        }
+
+        .column {
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .column-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gray);
+        }
+
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--gray);
+            margin-bottom: 16px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            color: var(--white);
+            font-family: inherit;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .system-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding: 8px 0;
+        }
+
+        .system-name {
+            font-size: 11px;
+            color: var(--white);
+            flex: 1;
+        }
+
+        .system-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stepper-btn {
+            width: 24px;
+            height: 24px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            color: var(--white);
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+        }
+
+        .stepper-btn:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .stepper-value {
+            width: 40px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Center Column - Recommendations */
+        .recommendations {
+            padding: 20px;
+        }
+
+        .rec-card {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .rec-card:hover {
+            border-color: var(--blue);
+        }
+
+        .rec-card.selected {
+            border-color: var(--amber);
+            border-width: 2px;
+            padding: 19px;
+        }
+
+        .rec-card.calculating {
+            opacity: 0.5;
+        }
+
+        .rec-rank {
+            font-size: 9px;
+            color: var(--gray);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .rec-coherence {
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+
+        .coherence-high { color: var(--green); }
+        .coherence-medium { color: var(--amber); }
+        .coherence-low { color: var(--gray); }
+
+        .confidence-label {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .rec-title {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: var(--white);
+        }
+
+        .rec-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            color: var(--gray);
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .rec-meta span {
+            display: flex;
+            gap: 4px;
+        }
+
+        .rec-meta strong {
+            color: var(--white);
+        }
+
+        /* Right Column - Detail */
+        .detail-empty {
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .detail-content {
+            padding: 20px;
+        }
+
+        .detail-coherence {
+            text-align: center;
+            padding: 32px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        .detail-coherence-label {
+            font-size: 10px;
+            color: var(--gray);
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+        }
+
+        .detail-coherence-value {
+            font-size: 72px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .detail-section {
+            margin-bottom: 24px;
+        }
+
+        .detail-label {
+            font-size: 10px;
+            color: var(--gray);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .detail-value {
+            font-size: 13px;
+            color: var(--white);
+            line-height: 1.6;
+        }
+
+        .systems-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .system-badge {
+            padding: 4px 8px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--gray);
+        }
+
+        .radio-command {
+            background: var(--dark);
+            border: 1px solid var(--border);
+            padding: 16px;
+            font-size: 11px;
+            line-height: 1.8;
+            white-space: pre-line;
+            margin-bottom: 24px;
+            color: var(--green);
+        }
+
+        .execute-button {
+            width: 100%;
+            height: 56px;
+            background: var(--red);
+            color: var(--white);
+            border: none;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .execute-button:hover {
+            background: #dc2626;
+        }
+
+        .execute-button.holding {
+            background: var(--amber);
+        }
+
+        .execute-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: var(--white);
+            width: 0%;
+            transition: width 2s linear;
+        }
+
+        .execute-button.holding .execute-progress {
+            width: 100%;
+        }
+
+        .calculating-indicator {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+            font-size: 11px;
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 2px solid var(--border);
+            border-top-color: var(--amber);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Mission Success */
+        .mission-complete {
+            padding: 40px;
+            text-align: center;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 24px;
+        }
+
+        .success-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 32px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-item {
+            padding: 20px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--gray);
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--white);
+        }
+
+        .reset-btn {
+            width: 100%;
+            padding: 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--white);
+            font-family: inherit;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+        }
+
+        .reset-btn:hover {
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1200px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+            .column {
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">OMIN</div>
+        <div class="system-status">
+            <div class="status-dot"></div>
+            <span id="status-text">READY</span>
+        </div>
+    </div>
+
+    <div class="main">
+        <!-- LEFT COLUMN: INPUT -->
+        <div class="column">
+            <div class="column-header">THREAT & ASSETS</div>
+            
+            <div class="section">
+                <div class="section-title">THREAT</div>
+                <select class="input-field" id="threat-type" onchange="autoCalculate()">
+                    <option value="Shahed-136">Shahed-136</option>
+                    <option value="Geran-2">Geran-2</option>
+                    <option value="Lancet">Lancet (FPV)</option>
+                </select>
+                <input type="number" class="input-field" id="threat-count" value="4" min="1" placeholder="Count" onchange="autoCalculate()">
+                <input type="number" class="input-field" id="threat-range" value="22" step="0.1" placeholder="Range (km)" onchange="autoCalculate()">
+                <input type="number" class="input-field" id="threat-speed" value="185" placeholder="Speed (km/h)" onchange="autoCalculate()">
+                <input type="text" class="input-field" id="target-desc" value="Ammunition Depot (400 tons)" placeholder="Target" onchange="autoCalculate()">
+                <input type="number" class="input-field" id="follow-waves" value="2" min="0" placeholder="Expected follow-on waves" onchange="autoCalculate()">
+            </div>
+
+            <div class="section">
+                <div class="section-title">AVAILABLE SYSTEMS</div>
+                
+                <div class="system-row">
+                    <div class="system-name">IRIS-T</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('iris', -1)">−</button>
+                        <div class="stepper-value" id="iris-count">6</div>
+                        <button class="stepper-btn" onclick="adjustSystem('iris', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">Patriot</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('patriot', -1)">−</button>
+                        <div class="stepper-value" id="patriot-count">0</div>
+                        <button class="stepper-btn" onclick="adjustSystem('patriot', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">Buk-M1</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('buk', -1)">−</button>
+                        <div class="stepper-value" id="buk-count">3</div>
+                        <button class="stepper-btn" onclick="adjustSystem('buk', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">Stinger</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('stinger', -1)">−</button>
+                        <div class="stepper-value" id="stinger-count">8</div>
+                        <button class="stepper-btn" onclick="adjustSystem('stinger', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">Vampire Drone</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('drone', -1)">−</button>
+                        <div class="stepper-value" id="drone-count">4</div>
+                        <button class="stepper-btn" onclick="adjustSystem('drone', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">Mobile Group</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('mobile', -1)">−</button>
+                        <div class="stepper-value" id="mobile-count">2</div>
+                        <button class="stepper-btn" onclick="adjustSystem('mobile', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="system-row">
+                    <div class="system-name">РЕБ Буковель</div>
+                    <div class="system-controls">
+                        <button class="stepper-btn" onclick="adjustSystem('ew', -1)">−</button>
+                        <div class="stepper-value" id="ew-count">1</div>
+                        <button class="stepper-btn" onclick="adjustSystem('ew', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER COLUMN: RECOMMENDATIONS -->
+        <div class="column" id="center-column">
+            <div class="column-header">RECOMMENDATIONS</div>
+            
+            <div id="calculating-view" class="calculating-indicator">
+                <div class="spinner"></div>
+                <div>CALCULATING STRATEGIES...</div>
+            </div>
+
+            <div id="recommendations-view" class="recommendations hidden">
+                <!-- Recommendations will be inserted here -->
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: DETAIL -->
+        <div class="column" id="right-column">
+            <div class="column-header">DETAIL</div>
+            
+            <div id="detail-empty" class="detail-empty">
+                Adjust threat parameters or system counts to generate recommendations
+            </div>
+
+            <div id="detail-content" class="detail-content hidden">
+                <!-- Strategy detail will be inserted here -->
+            </div>
+
+            <div id="mission-success" class="mission-complete hidden">
+                <div class="success-icon">✓</div>
+                <div class="success-title">MISSION COMPLETE</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">THREATS</div>
+                        <div class="stat-value" id="result-threats">4/4</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">COST</div>
+                        <div class="stat-value" id="result-cost">$1.0M</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">COHERENCE</div>
+                        <div class="stat-value" id="result-coherence">0.8021</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">TIME</div>
+                        <div class="stat-value" id="result-time">3:24</div>
+                    </div>
+                </div>
+                <button class="reset-btn" onclick="resetDemo()">NEW SCENARIO</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8001/v1/battery';
+        let calculationTimeout = null;
+        let selectedStrategy = null;
+        let allRecommendations = [];
+        let isCalculating = false;
+
+        // Auto-calculate with debounce
+        function autoCalculate() {
+            if (calculationTimeout) clearTimeout(calculationTimeout);
+            calculationTimeout = setTimeout(() => {
+                calculateRecommendations();
+            }, 300);
+        }
+
+        function adjustSystem(system, delta) {
+            const el = document.getElementById(`${system}-count`);
+            const current = parseInt(el.textContent);
+            const newValue = Math.max(0, current + delta);
+            el.textContent = newValue;
+            autoCalculate();
+        }
+
+        async function calculateRecommendations() {
+            if (isCalculating) return;
+            isCalculating = true;
+
+            document.getElementById('status-text').textContent = 'CALCULATING';
+            document.getElementById('calculating-view').classList.remove('hidden');
+            document.getElementById('recommendations-view').classList.add('hidden');
+
+            const threatData = {
+                threat_type: document.getElementById('threat-type').value,
+                count: parseInt(document.getElementById('threat-count').value),
+                range_km: parseFloat(document.getElementById('threat-range').value),
+                speed_kmh: parseInt(document.getElementById('threat-speed').value),
+                bearing: 15,
+                altitude_m: 1000,
+                target_description: document.getElementById('target-desc').value,
+                target_priority: 'Критичний'
+            };
+
+            const systems = [];
+            const systemConfigs = {
+                iris: { type: 'IRIS-T', cost: 500000, range: 40, success: 0.93, reload: 720 },
+                patriot: { type: 'Patriot', cost: 3000000, range: 160, success: 0.95, reload: 720 },
+                buk: { type: 'Buk-M1', cost: 100000, range: 35, success: 0.85, reload: 480 },
+                stinger: { type: 'Stinger', cost: 38000, range: 4.8, success: 0.70, reload: 120 },
+                drone: { type: 'Vampire Interceptor Drone', cost: 5000, range: 20, success: 0.60, reload: 30 },
+                mobile: { type: 'Mobile Firing Group (ЗУ-23-2)', cost: 500, range: 2.5, success: 0.35, reload: 15 },
+                ew: { type: 'РЕБ Буковель', cost: 0, range: 15, success: 0.75, reload: 0 }
+            };
+
+            Object.entries(systemConfigs).forEach(([key, config]) => {
+                const count = parseInt(document.getElementById(`${key}-count`).textContent);
+                if (count > 0) {
+                    systems.push({
+                        system_type: config.type,
+                        count: 1,
+                        missiles_available: count,
+                        cost_per_shot: config.cost,
+                        effective_range_km: config.range,
+                        success_rate: config.success,
+                        reload_time_minutes: config.reload
+                    });
+                }
+            });
+
+            const payload = {
+                threat: threatData,
+                systems: systems,
+                constraints: {
+                    limited_ammunition: true,
+                    expected_follow_on_waves: parseInt(document.getElementById('follow-waves').value),
+                    weather_conditions: 'Nominal',
+                    resupply_time_hours: 24
+                },
+                commander_context: 'Battery Commander Tactical Decision'
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Unknown error');
+
+                displayResults(result);
+
+            } catch (error) {
+                console.error('Calculation error:', error);
+                document.getElementById('status-text').textContent = 'ERROR';
+            } finally {
+                isCalculating = false;
+            }
+        }
+
+        function displayResults(result) {
+            allRecommendations = result.ranked_recommendations;
+            
+            document.getElementById('status-text').textContent = 'READY';
+            document.getElementById('calculating-view').classList.add('hidden');
+            document.getElementById('recommendations-view').classList.remove('hidden');
+
+            const container = document.getElementById('recommendations-view');
+            container.innerHTML = '';
+
+            result.ranked_recommendations.slice(0, 3).forEach((rec, index) => {
+                const coherenceClass = rec.coherence >= 0.75 ? 'coherence-high' :
+                                      rec.coherence >= 0.65 ? 'coherence-medium' :
+                                      'coherence-low';
+
+                const confidenceLabel = rec.coherence >= 0.75 ? 'HIGH CONFIDENCE' :
+                                       rec.coherence >= 0.65 ? 'MODERATE CONFIDENCE' :
+                                       'LOW CONFIDENCE';
+
+                const div = document.createElement('div');
+                div.className = 'rec-card';
+                div.onclick = () => selectRecommendation(rec, div);
+
+                div.innerHTML = `
+                    <div class="rec-rank">${index === 0 ? 'OPTIMAL' : 'ALTERNATIVE ' + index}</div>
+                    <div class="rec-coherence ${coherenceClass}">${rec.coherence.toFixed(4)}</div>
+                    <div class="confidence-label ${coherenceClass}">${confidenceLabel}</div>
+                    <div class="rec-title">${rec.title}</div>
+                    <div class="rec-meta">
+                        <span>COST <strong>$${(rec.estimated_cost / 1000000).toFixed(2)}M</strong></span>
+                        <span>SUCCESS <strong>${rec.estimated_success_rate}%</strong></span>
+                    </div>
+                `;
+
+                container.appendChild(div);
+            });
+
+            // Auto-select first recommendation
+            if (allRecommendations.length > 0) {
+                setTimeout(() => {
+                    const firstCard = container.querySelector('.rec-card');
+                    if (firstCard) {
+                        selectRecommendation(allRecommendations[0], firstCard);
+                    }
+                }, 100);
+            }
+        }
+
+        function selectRecommendation(rec, element) {
+            document.querySelectorAll('.rec-card').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedStrategy = rec;
+
+            showDetail(rec);
+        }
+
+        function showDetail(rec) {
+            document.getElementById('detail-empty').classList.add('hidden');
+            document.getElementById('detail-content').classList.remove('hidden');
+
+            const coherenceClass = rec.coherence >= 0.75 ? 'coherence-high' :
+                                  rec.coherence >= 0.65 ? 'coherence-medium' :
+                                  'coherence-low';
+
+            const confidenceLabel = rec.coherence >= 0.75 ? 'HIGH CONFIDENCE' :
+                                   rec.coherence >= 0.65 ? 'MODERATE CONFIDENCE' :
+                                   'LOW CONFIDENCE';
+
+            const systemsBadges = rec.systems_used ? 
+                rec.systems_used.map(s => `<span class="system-badge">${s}</span>`).join('') : '';
+
+            const threatCount = parseInt(document.getElementById('threat-count').value);
+            const threatType = document.getElementById('threat-type').value;
+
+            const radioCommand = `THREAT: ${threatCount}x ${threatType}
+STRATEGY: ${rec.title}
+COHERENCE: ${rec.coherence.toFixed(4)}
+
+${rec.description.split('\n').slice(0, 4).join('\n')}
+
+COST: $${(rec.estimated_cost / 1000000).toFixed(2)}M
+SUCCESS RATE: ${rec.estimated_success_rate}%`;
+
+            document.getElementById('detail-content').innerHTML = `
+                <div class="detail-coherence">
+                    <div class="detail-coherence-label">COHERENCE</div>
+                    <div class="detail-coherence-value ${coherenceClass}">${rec.coherence.toFixed(4)}</div>
+                    <div class="confidence-label ${coherenceClass}" style="margin-top: 8px;">${confidenceLabel}</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-label">STRATEGY</div>
+                    <div class="detail-value">${rec.title}</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-label">DESCRIPTION</div>
+                    <div class="detail-value">${rec.description}</div>
+                </div>
+
+                ${rec.systems_used && rec.systems_used.length > 0 ? `
+                <div class="detail-section">
+                    <div class="detail-label">SYSTEMS</div>
+                    <div class="systems-list">${systemsBadges}</div>
+                </div>` : ''}
+
+                <div class="detail-section">
+                    <div class="detail-label">ESTIMATED COST</div>
+                    <div class="detail-value">$${(rec.estimated_cost / 1000000).toFixed(2)}M</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-label">SUCCESS RATE</div>
+                    <div class="detail-value">${rec.estimated_success_rate}%</div>
+                </div>
+
+                <div class="detail-section">
+                    <div class="detail-label">RADIO COMMAND</div>
+                    <div class="radio-command">${radioCommand}</div>
+                </div>
+
+                <button class="execute-button" onmousedown="startExecute()" onmouseup="cancelExecute()" onmouseleave="cancelExecute()">
+                    HOLD TO EXECUTE
+                    <div class="execute-progress"></div>
+                </button>
+            `;
+        }
+
+        let executeTimeout = null;
+
+        function startExecute() {
+            const btn = event.target;
+            btn.classList.add('holding');
+            
+            executeTimeout = setTimeout(() => {
+                executeCommand();
+            }, 2000);
+        }
+
+        function cancelExecute() {
+            if (executeTimeout) {
+                clearTimeout(executeTimeout);
+                executeTimeout = null;
+            }
+            const btn = document.querySelector('.execute-button');
+            if (btn) btn.classList.remove('holding');
+        }
+
+        function executeCommand() {
+	    document.getElementById('detail-content').classList.add('hidden');
+    	    document.getElementById('mission-success').classList.remove('hidden');
+
+    	    const threatCount = parseInt(document.getElementById('threat-count').value);
+    	    const threatType = document.getElementById('threat-type').value;  // FIXED - removed extra )
+
+    	    document.getElementById('result-threats').textContent = `${threatCount}/${threatCount}`;
+            document.getElementById('result-cost').textContent = `$${(selectedStrategy.estimated_cost / 1000000).toFixed(1)}M`;
+    	    document.getElementById('result-coherence').textContent = selectedStrategy.coherence.toFixed(4);
+	    document.getElementById('result-time').textContent = '3:24';
+        }         
+
+        function resetDemo() {
+            document.getElementById('mission-success').classList.add('hidden');
+            document.getElementById('detail-empty').classList.remove('hidden');
+            document.getElementById('recommendations-view').classList.add('hidden');
+            document.getElementById('calculating-view').classList.remove('hidden');
+            
+            selectedStrategy = null;
+            allRecommendations = [];
+            
+            setTimeout(() => autoCalculate(), 500);
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            setTimeout(() => autoCalculate(), 500);
+        });
+    </script>
+</body>
+</html>
