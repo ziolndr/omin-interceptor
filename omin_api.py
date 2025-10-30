@@ -14,6 +14,7 @@ For: Brave1 / Ukrainian Armed Forces
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from enum import Enum
@@ -195,6 +196,11 @@ def api_to_doctrine_models(request: BatteryRequest) -> tuple:
 # ============================================================================
 
 @app.get("/")
+async def serve_frontend():
+    """Serve the OMIN command interface"""
+    return FileResponse("index.html")
+    
+@app.get("/")
 async def root():
     """Health check endpoint"""
     return {
@@ -236,7 +242,7 @@ async def process_battery_scenario(request: BatteryRequest):
         
         # Initialize doctrine service
         # TODO: Make ARBITER URL configurable via environment variable
-        service = ARBITERDoctrineService(arbiter_url="http://0.0.0.0:8000/v1/compare")
+        service = ARBITERDoctrineService(arbiter_url="https://api.arbiter.traut.ai/v1/compare")
         
         # Process scenario
         result = service.process_battery_situation(
