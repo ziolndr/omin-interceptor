@@ -7,7 +7,7 @@ Updated to support Ukrainian multi-tier defense doctrine including:
 - Helicopter systems (economical)
 - Traditional missile systems (moderate/premium)
 
-Created by: Yaroslav Sherstiuk & Joel Trout
+Created by: Joel Trout
 For: Brave1 / Ukrainian Armed Forces deployment
 Version: 2.1 - Cost calculations fixed
 """
