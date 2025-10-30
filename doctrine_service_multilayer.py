@@ -749,7 +749,7 @@ class ARBITERDoctrineService:
     Main service: Generate options + evaluate with ARBITER
     """
 
-    def __init__(self, arbiter_url: str = "http://0.0.0.0:8000/v1/compare"):
+    def __init__(self, arbiter_url: str = "https://api.arbiter.traut.ai/v1/compare"):
         self.arbiter_url = arbiter_url
 
     def process_battery_situation(self,
