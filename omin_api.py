@@ -200,18 +200,6 @@ async def serve_frontend():
     """Serve the OMIN command interface"""
     return FileResponse("index.html")
     
-@app.get("/")
-async def root():
-    """Health check endpoint"""
-    return {
-        "service": "Omin API",
-        "status": "operational",
-        "version": "2.0",
-        "endpoints": [
-            "/v1/battery - Process battery-level tactical scenario",
-            "/health - Service health check"
-        ]
-    }
 
 @app.get("/health")
 async def health():
